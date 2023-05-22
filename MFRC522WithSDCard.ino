@@ -23,7 +23,7 @@ File myFile; // Instance of the class SD Card
 
 String allowedCard[200]; // Array that saved allowed card list from SD Card file
 
-?? Buzzer beep function
+// Buzzer beep function
 void beepBuzzer(int x, int y) {
   for (int i = 0; i < x; i++) {
     // digitalWrite(BUZZER, HIGH);
