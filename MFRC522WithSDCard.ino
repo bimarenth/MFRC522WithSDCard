@@ -23,6 +23,7 @@ File myFile; // Instance of the class SD Card
 
 String allowedCard[200]; // Array that saved allowed card list from SD Card file
 
+
 // Buzzer beep function
 void beepBuzzer(int x, int y) {
   for (int i = 0; i < x; i++) {
@@ -35,6 +36,7 @@ void beepBuzzer(int x, int y) {
   }
 }
 
+
 // Function for switch relay
 void openDoor(int y) {
   digitalWrite(DOOR, HIGH);
@@ -44,6 +46,7 @@ void openDoor(int y) {
   //  Serial.println("Cekrek!!");
 }
 
+
 // Scan RFID tag and save it to uidCard variable
 void scanCard() {
   uidCard = "";
@@ -51,13 +54,14 @@ void scanCard() {
   rfid.PICC_ReadCardSerial();
   Serial.print("Tag UID: ");
   for (byte i = 0; i < rfid.uid.size; i++) {
-    //      readCard.concat(String(rfid.uid.uidByte[i] < 0x10 ? "0" : " "));
+    //      uidCard.concat(String(rfid.uid.uidByte[i] < 0x10 ? "0" : " "));
     uidCard.concat(String(rfid.uid.uidByte[i], HEX));
     uidCard.toUpperCase();
   }
   Serial.println(uidCard);
   delay(1000); // 1 second halt
 }
+
 
 // Check if scanned card match with allowed card list
 void checkCard(String scannedCard) {
@@ -143,6 +147,8 @@ void writeCard(String scannedCard) {
   delay(2000);
 }
 
+
+// Verify if scanned card has saved before in SD Card or not
 void verifyWrite(String scannedCard) {
   bool writeToSD = false;
 
@@ -158,8 +164,9 @@ void verifyWrite(String scannedCard) {
   }
 }
 
+
+// Setup code
 void setup() {
-  // put your setup code here, to run once:
   pinMode(DOOR, OUTPUT);
   pinMode(PIN_MODE, INPUT_PULLUP);
 
@@ -168,7 +175,7 @@ void setup() {
 
   rfid.PCD_Init();
 
-  if (!SD.begin(CS_SD)) {
+  if (!SD.begin(CS_SD)) { // Start SD Card
     while (true) {
       beepBuzzer(3, 200);
       delay(500);
@@ -187,8 +194,9 @@ void setup() {
   }
 }
 
+
+// Loop code
 void loop() {
-  // put your main code here, to run repeatedly:
   if (MODE_WRITE == false) {
     if (rfid.PICC_IsNewCardPresent()) {
       scanCard();
