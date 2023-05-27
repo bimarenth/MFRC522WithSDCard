@@ -10,7 +10,13 @@ library that needed in this project is :
 - MFRC522
 - SD
 
-Wiring Guide
+Wiring Guide:
+- D1 > CS SD Card
+- D3 > RST MFRC522
+- D4 > SDA
+- D5 > SCK
+- D6 > MISO
+- D7 > MOSI
 
 ![image](https://github.com/bimarenth/MFRC522WithSDCard/assets/94059195/dba2be90-728e-4316-aa7c-df863aa79e39)
 
