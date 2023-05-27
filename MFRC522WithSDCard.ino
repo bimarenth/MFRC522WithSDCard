@@ -2,7 +2,7 @@
 #include <MFRC522.h>
 #include <SD.h>
 
-// Pin that used for MFRC522, please reffer another site for more detail wiring diagram
+// Pin that used for MFRC522, please read Readme.md for more detail wiring guide.
 #define RST_PIN 0
 #define SS_PIN  2
 
