@@ -16,6 +16,7 @@ MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class MFRC522
 
 bool MODE_WRITE;
 int wrongAttempt = 0;
+bool isCardTrue;
 
 String uidCard; // Variable that save tag id from scanned card
 
@@ -65,8 +66,6 @@ void scanCard() {
 
 // Check if scanned card match with allowed card list
 void checkCard(String scannedCard) {
-  bool isCardTrue;
-  
   for (int i = 0; i < 200; i++) {
     (allowedCard[i] == scannedCard) ? isCardTrue = true : isCardTrue = false;
     if (isCardTrue == true) break;
