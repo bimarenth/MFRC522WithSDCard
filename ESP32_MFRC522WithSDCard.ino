@@ -3,17 +3,14 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-
 // Pin that used for MFRC522, please reffer another site for more detail wiring diagram
 #define RST_PIN 27
 #define SS_PIN  5
 
-// Pin Chip Select for Micro SD Card module
-#define CS_SD 4
+#define CS_SD 4 // Pin Chip Select for Micro SD Card module
 
 #define DOOR 26
-
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class MFRC522
+#define PIN_MODE 12
 
 bool MODE_WRITE = false;
 int wrongAttempt = 0;
@@ -21,25 +18,24 @@ bool isCardTrue;
 String parameter;
 byte line;
 
+String allowedCard[200]; // Array that saved allowed card list from SD Card file
+
 String uidCard; // Variable that save tag id from scanned card
 
 File myFile; // Instance of the class SD Card
-
-String allowedCard[200]; // Array that saved allowed card list from SD Card file
-
+MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class MFRC522
 
 // Buzzer beep function
 void beepBuzzer(int x, int y) {
   for (int i = 0; i < x; i++) {
-    // digitalWrite(BUZZER, HIGH);
-    Serial.println("Beep!!!");
+    digitalWrite(BUZZER, HIGH);
+    // Serial.println("Beep!!!");
     delay(y);
-    // digitalWrite(BUZZER, LOW);
-    Serial.println("Beep!!!");
+    digitalWrite(BUZZER, LOW);
+    // Serial.println("Beep!!!");
     delay(y);
   }
 }
-
 
 // Function for switch relay
 void openDoor(int y) {
@@ -49,7 +45,6 @@ void openDoor(int y) {
   digitalWrite(DOOR, LOW);
   //  Serial.println("Cekrek!!");
 }
-
 
 // Scan RFID tag and save it to uidCard variable
 void scanCard() {
@@ -66,11 +61,8 @@ void scanCard() {
   delay(1000); // 1 second halt
 }
 
-
 // Check if scanned card match with allowed card list
 void checkCard(String scannedCard) {
-  //  bool isCardTrue;
-
   for (int i = 0; i < 200; i++) {
     (allowedCard[i] == scannedCard) ? isCardTrue = true : isCardTrue = false;
     if (isCardTrue == true) break;
@@ -93,7 +85,7 @@ void checkCard(String scannedCard) {
 }
 
 // function for save SD Card allowed card lists to Array allowedCard
-void readData(fs::FS &fs, const char * path, bool writeMode) {
+void readData(fs::FS &fs, const char * path) {
   Serial.printf("Reading file: %s\n", path);
 
   myFile = fs.open(path);
@@ -103,7 +95,7 @@ void readData(fs::FS &fs, const char * path, bool writeMode) {
   }
 
   while (myFile.available()) {
-    //        Serial.write(file.read());
+    // Serial.write(file.read());
     char data = myFile.read();
     if (isPrintable(data)) {
       parameter.concat(data);
@@ -113,27 +105,15 @@ void readData(fs::FS &fs, const char * path, bool writeMode) {
       line++;
     }
   }
-  if (writeMode == true) {
-    int freeArray = 0;
-    for (int i = 0; i < 200; i++) {
-      //      Serial.println(allowedCard[i]);
-      if (allowedCard[i] == "") freeArray++;
-    }
-    Serial.print("Memori yang tersisa: ");
-    Serial.print(freeArray);
-    Serial.println(" Kartu");
-  }
 
   myFile.close();
 }
 
 // Write new card to SD Card if it not listed before
 void writeCard(String scannedCard) {
-  // Enables SD card chip select pin
-  digitalWrite(CS_SD, LOW);
+  digitalWrite(CS_SD, LOW); // Enables SD card chip select pin
 
-  // Open file
-  myFile = SD.open("RFID.txt", FILE_WRITE);
+  myFile = SD.open("RFID.txt", FILE_WRITE); // Open file
 
   // If the file opened ok, write to it
   if (myFile) {
@@ -142,16 +122,14 @@ void writeCard(String scannedCard) {
 
     Serial.println("sucessfully written on SD card");
     myFile.close();
-  }
-  else {
+  } else {
     Serial.println("error opening FILE.txt");
   }
-  // Disables SD card chip select pin
-  digitalWrite(CS_SD, HIGH);
+
+  digitalWrite(CS_SD, HIGH); // Disables SD card chip select pin
 
   delay(2000);
 }
-
 
 // Verify if scanned card has saved before in SD Card or not
 void verifyWrite(String scannedCard) {
@@ -169,14 +147,23 @@ void verifyWrite(String scannedCard) {
   }
 }
 
+void calFreeCard() {
+  int freeArray = 0;
+  for (int i = 0; i < 200; i++) {
+    if (allowedCard[i] == 0) freeArray++;
+  }
+
+  Serial.print("Memori yang tersisa: ");
+  Serial.print(freeArray);
+  Serial.println(" Kartu");
+}
 
 // Setup code
 void setup() {
-  //  pinMode(DOOR, OUTPUT);
-  //  pinMode(PIN_MODE, INPUT_PULLUP);
+  pinMode(DOOR, OUTPUT);
+  pinMode(PIN_MODE, INPUT_PULLUP);
   SPI.begin();
   Serial.begin(115200);
-
   rfid.PCD_Init();
 
   if (!SD.begin(CS_SD)) {
@@ -190,23 +177,20 @@ void setup() {
     return;
   }
 
-  //  if (analogRead(PIN_MODE) >= 1023) {
-  //    MODE_WRITE = true;
-  //    Serial.println("Mode Write");
-  //    readData(MODE_WRITE);
-  //  } else {
-  //    MODE_WRITE = false;
-  //    Serial.println("Mode Read");
-  //    readData(MODE_WRITE);
-  //  }
-
-  readData(SD, "/RFID.txt", MODE_WRITE);
-
-  for (int i = 0; i < 200; i++) {
-    Serial.println(allowedCard[i]);
+  if (digitalRead(PIN_MODE) == 0) {
+    MODE_WRITE = true;
+    Serial.println("Mode Write");
+    readData(SD, "/RFID.txt");
+  } else {
+    MODE_WRITE = false;
+    Serial.println("Mode Read");
+    readData(SD, "/RFID.txt");
   }
-}
 
+  //  for (int i = 0; i < 200; i++) {
+  //    Serial.println(allowedCard[i]);
+  //  }
+}
 
 // Loop code
 void loop() {
@@ -219,6 +203,7 @@ void loop() {
     if (rfid.PICC_IsNewCardPresent()) {
       scanCard();
       verifyWrite(uidCard);
+      calFreeCard();
     }
   }
 }
