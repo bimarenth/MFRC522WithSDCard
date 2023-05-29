@@ -6,24 +6,22 @@
 #define RST_PIN 0
 #define SS_PIN  2
 
-// Pin Chip Select for Micro SD Card module
-#define CS_SD 4
+#define CS_SD 4 // Pin Chip Select for Micro SD Card module
 
 #define DOOR 5
 #define PIN_MODE A0
 
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class MFRC522
-
 bool MODE_WRITE;
 int wrongAttempt = 0;
 bool isCardTrue;
+String parameter;
+byte line;
 
+String allowedCard[200]; // Array that saved allowed card list from SD Card file
 String uidCard; // Variable that save tag id from scanned card
 
 File myFile; // Instance of the class SD Card
-
-String allowedCard[200]; // Array that saved allowed card list from SD Card file
-
+MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class MFRC522
 
 // Buzzer beep function
 void beepBuzzer(int x, int y) {
@@ -89,9 +87,6 @@ void checkCard(String scannedCard) {
 
 // function for save SD Card allowed card lists to Array allowedCard
 void readData(bool writeMode) {
-  String parameter;
-  byte line;
-  
   myFile = SD.open("RFID.txt");
   if (myFile) {
     while (myFile.available()) {
@@ -108,17 +103,6 @@ void readData(bool writeMode) {
 
   myFile.close();
   Serial.println("Success read from SD Card");
-  
-  if (writeMode == true) {
-    int freeArray;
-    for (int i = 0; i < 200; i++) {
-      //      Serial.println(allowedCard[i]);
-      if (allowedCard[i] == "") freeArray++;
-    }
-    Serial.print("Memori yang tersisa: ");
-    Serial.print(freeArray);
-    Serial.println(" Kartu");
-  }
 }
 
 // Write new card to SD Card if it not listed before
@@ -146,7 +130,6 @@ void writeCard(String scannedCard) {
   delay(2000);
 }
 
-
 // Verify if scanned card has saved before in SD Card or not
 void verifyWrite(String scannedCard) {
   bool writeToSD = false;
@@ -155,7 +138,7 @@ void verifyWrite(String scannedCard) {
     (allowedCard[i] == scannedCard) ? writeToSD = true : writeToSD = false;
     if (isCardTrue == true) break;
   }
-
+  
   if (writeToSD == true) {
     writeCard(scannedCard);
   } else {
@@ -163,6 +146,16 @@ void verifyWrite(String scannedCard) {
   }
 }
 
+void calFreeCard() {
+  int freeArray = 0;
+  for (int i = 0; i < 200; i++) {
+    if (allowedCard[i] == 0) freeArray++;
+  }
+
+  Serial.print("Memori yang tersisa: ");
+  Serial.print(freeArray);
+  Serial.println(" Kartu");
+}
 
 // Setup code
 void setup() {
@@ -205,7 +198,7 @@ void loop() {
     if (rfid.PICC_IsNewCardPresent()) {
       scanCard();
       verifyWrite(uidCard);
+      calFreeCard();
     }
   }
-
 }
